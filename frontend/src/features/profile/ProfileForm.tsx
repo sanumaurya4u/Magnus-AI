@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { LearnerProfile } from './types';
-import { Save } from 'lucide-react';
+import { Save, CheckCircle, RotateCcw } from 'lucide-react';
 
 interface Props {
   initialProfile: LearnerProfile;
@@ -10,9 +10,11 @@ interface Props {
 export const ProfileForm: React.FC<Props> = ({ initialProfile, onSave }) => {
   const [profile, setProfile] = useState<LearnerProfile>(initialProfile);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    setIsSaved(false); // reset banner on any change
     setProfile((prev) => ({
       ...prev,
       [name]: name === 'yearsOfExperience' ? parseInt(value) || 0 : value,
@@ -22,11 +24,20 @@ export const ProfileForm: React.FC<Props> = ({ initialProfile, onSave }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setIsSaved(false);
     // Simulate API call
     setTimeout(() => {
       onSave(profile);
       setIsSaving(false);
-    }, 600);
+      setIsSaved(true);
+      // Auto-dismiss banner after 4s
+      setTimeout(() => setIsSaved(false), 4000);
+    }, 700);
+  };
+
+  const handleReset = () => {
+    setProfile(initialProfile);
+    setIsSaved(false);
   };
 
   return (
@@ -38,6 +49,19 @@ export const ProfileForm: React.FC<Props> = ({ initialProfile, onSave }) => {
         <h2 className="text-xl font-extrabold text-[#1A1816]">Edit Official Profile</h2>
         <p className="text-xs text-[#6B645B] mt-0.5 font-medium">Update your MoSPI official designation, training history, and educational background.</p>
       </div>
+
+      {/* Success Banner */}
+      {isSaved && (
+        <div className="flex items-center gap-3 p-4 bg-[#EDF7EF] border border-[#CCEBD3] rounded-2xl animate-[fadeIn_0.3s_ease]">
+          <div className="w-8 h-8 rounded-full bg-[#237A3C] flex items-center justify-center shrink-0">
+            <CheckCircle className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[#1A5C2C]">Profile saved successfully</p>
+            <p className="text-xs text-[#237A3C] mt-0.5">Your Competency Passport has been updated with the latest information.</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -71,6 +95,8 @@ export const ProfileForm: React.FC<Props> = ({ initialProfile, onSave }) => {
             <option value="Junior Statistical Officer">Junior Statistical Officer</option>
             <option value="Statistical Officer">Statistical Officer</option>
             <option value="Data Analyst">Data Analyst</option>
+            <option value="Senior Statistical Officer">Senior Statistical Officer</option>
+            <option value="Deputy Director (Statistics)">Deputy Director (Statistics)</option>
           </select>
         </div>
         <div>
@@ -83,12 +109,23 @@ export const ProfileForm: React.FC<Props> = ({ initialProfile, onSave }) => {
             <option value="Labour Statistics">Labour Statistics</option>
             <option value="National Accounts">National Accounts</option>
             <option value="Agricultural Statistics">Agricultural Statistics</option>
+            <option value="Price Statistics">Price Statistics</option>
+            <option value="Methodology">Methodology</option>
+            <option value="IT / Operations">IT / Operations</option>
           </select>
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-[#4A443C] uppercase tracking-wider mb-1.5">Current Assignment</label>
+          <input 
+            type="text" name="currentAssignment" value={profile.currentAssignment} onChange={handleChange}
+            placeholder="e.g. Annual Survey of Industries"
+            className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D8D1C3] rounded-xl text-sm text-[#1A1816] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#D9531E]/20 focus:border-[#D9531E] transition-all"
+          />
         </div>
         <div>
           <label className="block text-xs font-bold text-[#4A443C] uppercase tracking-wider mb-1.5">Years of Experience</label>
           <input 
-            type="number" name="yearsOfExperience" value={profile.yearsOfExperience} onChange={handleChange} min="0"
+            type="number" name="yearsOfExperience" value={profile.yearsOfExperience} onChange={handleChange} min="0" max="40"
             className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D8D1C3] rounded-xl text-sm text-[#1A1816] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#D9531E]/20 focus:border-[#D9531E] transition-all font-mono"
           />
         </div>
@@ -104,26 +141,45 @@ export const ProfileForm: React.FC<Props> = ({ initialProfile, onSave }) => {
           <label className="block text-xs font-bold text-[#4A443C] uppercase tracking-wider mb-1.5">Previous Training Programmes</label>
           <textarea 
             name="previousTraining" value={profile.previousTraining} onChange={handleChange} rows={2}
-            className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D8D1C3] rounded-xl text-sm text-[#1A1816] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#D9531E]/20 focus:border-[#D9531E] transition-all"
+            placeholder="e.g. Official Statistics Foundation Course (NSSTA), 2023"
+            className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D8D1C3] rounded-xl text-sm text-[#1A1816] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#D9531E]/20 focus:border-[#D9531E] transition-all resize-none"
           />
         </div>
         <div className="md:col-span-2">
           <label className="block text-xs font-bold text-[#4A443C] uppercase tracking-wider mb-1.5">Certifications</label>
           <input 
             type="text" name="certifications" value={profile.certifications} onChange={handleChange}
+            placeholder="e.g. Data Analysis with Python (iGOT), 2024"
             className="w-full px-3.5 py-2.5 bg-[#FAF8F5] border border-[#D8D1C3] rounded-xl text-sm text-[#1A1816] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#D9531E]/20 focus:border-[#D9531E] transition-all"
           />
         </div>
       </div>
 
-      <div className="flex justify-end pt-4 border-t border-[#EFE9DF]">
+      <div className="flex items-center justify-between pt-4 border-t border-[#EFE9DF]">
+        <button
+          type="button"
+          onClick={handleReset}
+          className="flex items-center text-xs font-bold text-[#8C8375] hover:text-[#1A1816] transition-colors px-4 py-2.5 rounded-full hover:bg-[#F2ECE0] border border-transparent hover:border-[#DDD6C8]"
+        >
+          <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
+          Discard Changes
+        </button>
         <button 
           type="submit" 
           disabled={isSaving}
           className="bg-[#1C1A18] hover:bg-[#2B2825] text-[#F7F3EB] font-bold py-2.5 px-6 rounded-full transition-all flex items-center shadow-sm hover:-translate-y-0.5 active:translate-y-0 text-sm disabled:opacity-50"
         >
-          <Save className="w-4 h-4 mr-2 text-[#D9531E]" />
-          {isSaving ? 'Saving Updates...' : 'Save Profile Changes'}
+          {isSaving ? (
+            <>
+              <span className="w-3.5 h-3.5 rounded-full border-2 border-[#F7F3EB]/30 border-t-[#D9531E] animate-spin mr-2" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2 text-[#D9531E]" />
+              Save Profile Changes
+            </>
+          )}
         </button>
       </div>
     </form>

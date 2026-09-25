@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, Shield, User, GraduationCap, Settings, Check } from 'lucide-react';
+import { Search, Filter, Shield, User, GraduationCap, Settings, Check, X } from 'lucide-react';
 
 type UserRole = 'learner' | 'trainer' | 'admin';
 
@@ -18,22 +18,27 @@ const MOCK_USERS: SystemUser[] = [
   { id: 'u3', name: 'Priya Patel', email: 'p.patel@mospi.gov.in', department: 'National Accounts', role: 'learner', lastActive: '5 mins ago' },
   { id: 'u4', name: 'Vikram Singh', email: 'v.singh@mospi.gov.in', department: 'IT / Operations', role: 'admin', lastActive: 'Just now' },
   { id: 'u5', name: 'Neha Gupta', email: 'n.gupta@mospi.gov.in', department: 'Price Statistics', role: 'learner', lastActive: '3 days ago' },
+  { id: 'u6', name: 'Arvind Mishra', email: 'a.mishra@nssta.gov.in', department: 'Agricultural Statistics', role: 'trainer', lastActive: '2 days ago' },
 ];
 
 export const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<SystemUser[]>(MOCK_USERS);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [roleFilter, setRoleFilter] = useState<'all' | UserRole>('all');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
-  const filteredUsers = users.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.department.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.department.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
 
   const handleRoleChange = (userId: string, newRole: UserRole) => {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    setEditingUserId(null); // Close edit mode after selection
+    setEditingUserId(null);
   };
 
   const getRoleIcon = (role: UserRole) => {
@@ -51,6 +56,8 @@ export const UserManagement: React.FC = () => {
       case 'learner': return 'bg-[#EAF3EC] text-[#237A3C] border-[#BCE1C7]';
     }
   };
+
+  const filterLabel = roleFilter === 'all' ? 'All Roles' : roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1) + 's';
 
   return (
     <div className="bg-[#FBF8F2] border border-[#E6E0D4] rounded-2xl shadow-sm overflow-hidden flex flex-col">
@@ -79,12 +86,56 @@ export const UserManagement: React.FC = () => {
                 className="pl-9 pr-4 py-2 bg-white border border-[#E6E0D4] rounded-full text-xs font-mono text-[#1C1A18] focus:outline-none focus:border-[#D9531E] focus:ring-1 focus:ring-[#D9531E] w-full md:w-64 placeholder:text-[#A8A095] transition-all"
               />
             </div>
-            <button className="flex items-center px-4 py-2 bg-white border border-[#E6E0D4] rounded-full text-xs font-bold text-[#3D372E] hover:bg-[#EFE9DF] hover:border-[#D9531E] transition-all cursor-pointer">
-              <Filter className="w-3.5 h-3.5 mr-2 text-[#8C8375]" /> Filter
-            </button>
+            {/* Functional Filter Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                className={`flex items-center px-4 py-2 border rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  roleFilter !== 'all'
+                    ? 'bg-[#D9531E] text-white border-[#D9531E]'
+                    : 'bg-white border-[#E6E0D4] text-[#3D372E] hover:bg-[#EFE9DF] hover:border-[#D9531E]'
+                }`}
+              >
+                <Filter className="w-3.5 h-3.5 mr-2" />
+                {filterLabel}
+                {roleFilter !== 'all' && (
+                  <span
+                    onClick={(e) => { e.stopPropagation(); setRoleFilter('all'); }}
+                    className="ml-2 hover:opacity-70 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </span>
+                )}
+              </button>
+              {showFilterDropdown && (
+                <div className="absolute right-0 top-full mt-2 w-40 bg-white border border-[#E6E0D4] rounded-2xl shadow-lg z-10 overflow-hidden">
+                  {(['all', 'learner', 'trainer', 'admin'] as const).map(r => (
+                    <button
+                      key={r}
+                      onClick={() => { setRoleFilter(r); setShowFilterDropdown(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-xs font-bold flex items-center justify-between transition-colors ${
+                        roleFilter === r ? 'bg-[#FDF2EC] text-[#D9531E]' : 'text-[#1C1A18] hover:bg-[#FAF8F5]'
+                      }`}
+                    >
+                      {r === 'all' ? 'All Roles' : r.charAt(0).toUpperCase() + r.slice(1) + 's'}
+                      {roleFilter === r && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Active filter chip */}
+      {roleFilter !== 'all' && (
+        <div className="px-6 py-3 bg-[#FDF2EC] border-b border-[#F7D2C0] flex items-center gap-2">
+          <span className="text-xs text-[#D9531E] font-bold">Filtered by:</span>
+          <span className="px-2.5 py-0.5 bg-[#D9531E] text-white rounded-full text-[11px] font-bold capitalize">{roleFilter}</span>
+          <span className="text-xs text-[#8C8375]">— {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} found</span>
+        </div>
+      )}
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
@@ -103,7 +154,7 @@ export const UserManagement: React.FC = () => {
                 <td className="p-4">
                   <div className="flex items-center">
                     <div className="w-9 h-9 rounded-full bg-[#EFE9DF] border border-[#E6E0D4] text-[#1C1A18] flex items-center justify-center font-bold text-xs mr-3 shrink-0 font-mono">
-                      {user.name.charAt(0)}
+                      {user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <div>
                       <p className="text-sm font-bold text-[#1C1A18] leading-tight">{user.name}</p>
@@ -158,8 +209,14 @@ export const UserManagement: React.FC = () => {
             
             {filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={5} className="p-8 text-center font-mono text-xs text-[#8C8375]">
-                  No users found matching "{searchQuery}"
+                <td colSpan={5} className="p-12 text-center">
+                  <div className="w-12 h-12 bg-[#FAF8F5] border border-[#E6E0D4] rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Search className="w-5 h-5 text-[#D5CEC2]" />
+                  </div>
+                  <p className="font-bold text-sm text-[#1C1A18] mb-1">No users found</p>
+                  <p className="font-mono text-xs text-[#8C8375]">
+                    {searchQuery ? `No match for "${searchQuery}"` : `No ${roleFilter}s registered yet.`}
+                  </p>
                 </td>
               </tr>
             )}

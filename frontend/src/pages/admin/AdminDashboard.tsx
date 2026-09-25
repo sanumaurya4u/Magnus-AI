@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserManagement } from '../../features/admin/UserManagement';
 import { SystemHealth } from '../../features/admin/SystemHealth';
-import { ShieldCheck, Users, Activity, Target, Activity as ActivityIcon, BarChart2, TrendingUp, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Users, Target, Activity, BarChart2, TrendingUp, AlertTriangle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 
 const MOCK_SKILL_GAPS = [
@@ -70,7 +70,7 @@ export const AdminDashboard: React.FC = () => {
                 : 'text-[#665F55] hover:text-[#1A1816]'
             }`}
           >
-            <ActivityIcon className="w-3.5 h-3.5 mr-1.5" />
+            <Activity className="w-3.5 h-3.5 mr-1.5" />
             System Health
           </button>
         </div>

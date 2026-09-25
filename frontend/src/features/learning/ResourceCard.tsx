@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { LearningResource, Recommendation } from './types';
-import { PlayCircle, FileText, Users, MonitorPlay, Clock, ShieldCheck, Bookmark } from 'lucide-react';
+import { PlayCircle, FileText, Users, MonitorPlay, Clock, ShieldCheck, Bookmark, CheckCircle, ExternalLink } from 'lucide-react';
 
 interface Props {
   resource: LearningResource;
@@ -8,6 +8,8 @@ interface Props {
 }
 
 export const ResourceCard: React.FC<Props> = ({ resource, recommendation }) => {
+  const [enrolled, setEnrolled] = useState(false);
+
   const getSourceIcon = () => {
     switch(resource.sourceSystem) {
       case 'iGOT': return <MonitorPlay className="w-5 h-5" />;
@@ -40,6 +42,14 @@ export const ResourceCard: React.FC<Props> = ({ resource, recommendation }) => {
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  };
+
+  const handleEnroll = () => {
+    setEnrolled(true);
+    // If resource has a URL, open it in a new tab
+    if (resource.url) {
+      window.open(resource.url, '_blank', 'noopener,noreferrer');
+    }
   };
 
   return (
@@ -87,10 +97,21 @@ export const ResourceCard: React.FC<Props> = ({ resource, recommendation }) => {
       </div>
       
       {/* Action button */}
-      <div className="px-5 pb-5 pt-2 bg-[#FAF8F5]">
-        <button className="w-full bg-[#1C1A18] hover:bg-[#2B2825] text-[#F7F3EB] font-bold text-xs py-2.5 rounded-full transition-all shadow-2xs hover:-translate-y-0.5 active:translate-y-0">
-          Start Learning →
-        </button>
+      <div className="px-5 pb-5 pt-3 bg-[#FAF8F5]">
+        {enrolled ? (
+          <div className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#EDF7EF] border border-[#CCEBD3] rounded-full">
+            <CheckCircle className="w-4 h-4 text-[#237A3C]" />
+            <span className="text-xs font-bold text-[#237A3C]">Enrolled — In Progress</span>
+          </div>
+        ) : (
+          <button
+            onClick={handleEnroll}
+            className="w-full flex items-center justify-center gap-2 bg-[#1C1A18] hover:bg-[#2B2825] text-[#F7F3EB] font-bold text-xs py-2.5 rounded-full transition-all shadow-2xs hover:-translate-y-0.5 active:translate-y-0"
+          >
+            {resource.url ? <ExternalLink className="w-3.5 h-3.5" /> : <PlayCircle className="w-3.5 h-3.5" />}
+            Start Learning
+          </button>
+        )}
       </div>
     </div>
   );

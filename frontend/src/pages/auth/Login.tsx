@@ -1,15 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth, type Role } from '../../app/providers/AuthProvider';
-import { Book, AlertCircle } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Book, AlertCircle, Loader2 } from 'lucide-react';
 
 export const Login: React.FC = () => {
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   // For SIH Demo purposes, allow selecting a mock role
   const [demoRole, setDemoRole] = useState<Role>('learner');
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      const from = (location.state as any)?.from?.pathname;
+      if (from && from !== '/login' && from !== '/unauthorized') {
+        navigate(from, { replace: true });
+      } else {
+        const dest = user.role === 'trainer' ? '/trainer'
+          : user.role === 'admin' || user.role === 'superadmin' ? '/admin'
+          : '/learner';
+        navigate(dest, { replace: true });
+      }
+    }
+  }, [user, navigate, location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,9 +40,8 @@ export const Login: React.FC = () => {
 
     try {
       await login(email, password, demoRole);
-      // MainLayout and AuthLayout handles the redirection based on user role
     } catch (err: any) {
-      setError(err.message || 'Failed to login');
+      setError(err.message || 'Failed to login. Please try again.');
     }
   };
 
@@ -41,7 +58,7 @@ export const Login: React.FC = () => {
           Sign in to <span className="text-[#D9531E]">Magnus AI</span>
         </h1>
         <p className="text-[#6B645B] text-sm mt-1 text-center font-medium">
-          AI-Powered Skill Intelligence & Learning
+          AI-Powered Skill Intelligence &amp; Learning
         </p>
       </div>
 
@@ -63,6 +80,7 @@ export const Login: React.FC = () => {
             placeholder="official@mospi.gov.in"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
           />
         </div>
 
@@ -76,21 +94,22 @@ export const Login: React.FC = () => {
             placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
           />
         </div>
 
-        <div className="pt-2 pb-2">
+        <div className="pt-2 pb-2 bg-[#FAF8F5] rounded-2xl border border-[#EFE9DF] p-4">
           <label className="block text-[11px] font-bold text-[#8C8375] uppercase tracking-widest mb-1.5">
             Demo Role Selection
           </label>
           <select 
-            className="w-full px-3.5 py-2.5 text-sm font-medium border border-[#D8D1C3] rounded-xl bg-[#FAF8F5] text-[#1A1816] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#D9531E]/20 focus:border-[#D9531E]"
+            className="w-full px-3.5 py-2.5 text-sm font-medium border border-[#D8D1C3] rounded-xl bg-white text-[#1A1816] focus:outline-none focus:ring-2 focus:ring-[#D9531E]/20 focus:border-[#D9531E]"
             value={demoRole}
             onChange={(e) => setDemoRole(e.target.value as Role)}
           >
-            <option value="learner">Learner (Ananya Sharma &bull; MoSPI)</option>
-            <option value="trainer">Trainer (Dr. Rahul Verma &bull; NSSTA)</option>
-            <option value="admin">Administrator (Capacity Building)</option>
+            <option value="learner">Learner (Ananya Sharma • MoSPI)</option>
+            <option value="trainer">Trainer (Dr. Rahul Verma • NSSTA)</option>
+            <option value="admin">Administrator (Vikram Singh • MoSPI)</option>
           </select>
           <p className="text-[11px] text-[#8C8375] mt-1.5 font-medium">
             Select a prototype persona to demo role-tailored dashboards.
@@ -100,11 +119,11 @@ export const Login: React.FC = () => {
         <button 
           type="submit" 
           disabled={isLoading}
-          className="w-full bg-[#1C1A18] hover:bg-[#2B2825] text-[#F7F3EB] font-bold py-3 px-4 rounded-full transition-all flex justify-center items-center shadow-sm hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+          className="w-full bg-[#1C1A18] hover:bg-[#2B2825] text-[#F7F3EB] font-bold py-3 px-4 rounded-full transition-all flex justify-center items-center shadow-sm hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#D9531E] animate-ping" />
+              <Loader2 className="w-4 h-4 animate-spin text-[#D9531E]" />
               Signing in...
             </span>
           ) : (

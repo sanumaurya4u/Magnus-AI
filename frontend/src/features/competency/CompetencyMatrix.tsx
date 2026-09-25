@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DOMAINS, COMPETENCIES, JOB_ROLES, ROLE_REQUIREMENTS, LEVELS } from './mockData';
-import { Target, Search, Info } from 'lucide-react';
+import { Target, ChevronDown, Info } from 'lucide-react';
 
 export const CompetencyMatrix: React.FC = () => {
   const [selectedRoleId, setSelectedRoleId] = useState<string>(JOB_ROLES[0].id);
@@ -48,7 +48,7 @@ export const CompetencyMatrix: React.FC = () => {
                 <option key={role.id} value={role.id}>{role.name}</option>
               ))}
             </select>
-            <Search className="w-4 h-4 text-[#8C8375] absolute right-4 top-3.5 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-[#8C8375] absolute right-4 top-3.5 pointer-events-none" />
           </div>
         </div>
       </div>

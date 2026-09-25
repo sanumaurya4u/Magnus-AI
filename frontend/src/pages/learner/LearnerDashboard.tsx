@@ -2,8 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Target, BookOpen, Clock, ArrowRight, Sparkles } from 'lucide-react';
 import { GapAnalysis } from '../../features/competency/GapAnalysis';
+import { useAuth } from '../../app/providers/AuthProvider';
 
 export const LearnerDashboard: React.FC = () => {
+  const { user } = useAuth();
+  const firstName = user?.name?.split(' ')[0] || 'Learner';
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
       {/* Editorial Welcome Header */}
@@ -17,7 +21,7 @@ export const LearnerDashboard: React.FC = () => {
           </span>
         </div>
         <h1 className="text-3xl md:text-4xl font-extrabold text-[#1A1816] tracking-tight">
-          Welcome back, <span className="text-[#D9531E]">Ananya</span>.
+          Welcome back, <span className="text-[#D9531E]">{firstName}</span>.
         </h1>
         <p className="text-[#6B645B] mt-1.5 text-sm font-medium">
           Here is your competency gap analysis and personalized training progression.

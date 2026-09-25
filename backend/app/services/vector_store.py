@@ -18,8 +18,9 @@ def get_embeddings_model():
         raise ValueError("Missing GEMINI_API_KEY in environment variables.")
         
     return GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004",
-        google_api_key=api_key
+        model="models/gemini-embedding-001",
+        google_api_key=api_key,
+        output_dimensionality=768
     )
 
 def store_chunks_in_vector_db(document_name: str, chunks: list[str], metadata: dict = None):

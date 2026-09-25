@@ -11,6 +11,7 @@ export const TrainerDashboard: React.FC = () => {
   const [quizzes, setQuizzes] = useState<PendingQuiz[]>(INITIAL_QUIZZES);
 
   const pendingCount = quizzes.filter(q => q.status === 'pending').length;
+  const pendingProcessingCount = uploads.filter(u => u.status === 'Processing' || u.status === 'Ingesting...').length;
 
   const handleUploadComplete = (newUpload: any, generatedQuiz?: PendingQuiz) => {
     setUploads(prev => [newUpload, ...prev]);
@@ -84,7 +85,7 @@ export const TrainerDashboard: React.FC = () => {
         {[
           { label: 'Materials Uploaded', value: uploads.length.toString(), icon: Layers, color: 'text-[#D9531E]', bg: 'bg-[#FDF2EC]', border: 'border-[#F7D2C0]' },
           { label: 'Assessments Gen.', value: quizzes.reduce((acc, q) => acc + q.questions.length, 0).toString(), icon: FileCheck, color: 'text-[#237A3C]', bg: 'bg-[#EDF7EF]', border: 'border-[#CCEBD3]' },
-          { label: 'Pending Processing', value: '0', icon: Clock, color: 'text-[#B86B00]', bg: 'bg-[#FEF8EC]', border: 'border-[#FBE3B5]' },
+          { label: 'Pending Processing', value: pendingProcessingCount.toString(), icon: Clock, color: 'text-[#B86B00]', bg: 'bg-[#FEF8EC]', border: 'border-[#FBE3B5]' },
           { label: 'Model Accuracy', value: '94%', icon: Settings, color: 'text-[#1A1816]', bg: 'bg-[#F2ECE1]', border: 'border-[#DDD6C8]' },
         ].map((stat, i) => (
           <div key={i} className="bg-white p-5 rounded-2xl border border-[#E6E0D4] shadow-[0_2px_8px_rgba(28,26,24,0.03)] flex items-center justify-between">

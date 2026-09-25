@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
 import { LogOut, User as UserIcon, BookOpen, LayoutDashboard, Target, Book } from 'lucide-react';
 
@@ -12,6 +12,12 @@ interface SidebarItem {
 export const MainLayout: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles }) => {
   const { user, isLoading, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
 
   if (isLoading) {
     return (
@@ -131,7 +137,7 @@ export const MainLayout: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles
           </div>
           <div className="flex items-center space-x-3">
             <button 
-              onClick={() => logout()}
+              onClick={handleLogout}
               className="flex items-center px-3.5 py-1.5 rounded-full border border-[#DDD6C8] bg-white/70 hover:bg-[#EAE4D7] text-[#554E45] hover:text-[#1A1816] text-xs font-semibold transition-all shadow-2xs"
             >
               <LogOut className="w-3.5 h-3.5 mr-1.5 text-[#8C8375]" />
