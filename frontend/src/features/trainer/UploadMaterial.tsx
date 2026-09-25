@@ -1,15 +1,18 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, CheckCircle, X, Loader2 } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle, X, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { DOMAINS, COMPETENCIES } from '../competency/mockData';
+import { uploadDocument, generateQuestions } from '../../lib/api';
+import type { PendingQuiz } from './ReviewQuizzes';
 
 interface Props {
-  onUploadComplete: (data: any) => void;
+  onUploadComplete: (data: any, generatedQuiz?: PendingQuiz) => void;
 }
 
 export const UploadMaterial: React.FC<Props> = ({ onUploadComplete }) => {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [notification, setNotification] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -40,29 +43,106 @@ export const UploadMaterial: React.FC<Props> = ({ onUploadComplete }) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
 
     setIsUploading(true);
-    
-    // Simulate upload and processing time
-    setTimeout(() => {
-      setIsUploading(false);
+    setNotification(null);
+
+    const compName = COMPETENCIES.find(c => c.id === formData.competencyId)?.name || 'General Statistics';
+    const uploadId = Math.random().toString(36).substr(2, 9);
+    const fileTitle = formData.title || file.name;
+
+    try {
+      // 1. Upload & Vectorize Document via FastAPI backend
+      const uploadRes = await uploadDocument(file);
+      
+      // 2. Generate Real MCQs using Gemini LLM via FastAPI backend
+      const qRes = await generateQuestions({
+        competency_name: compName,
+        difficulty_level: formData.difficulty,
+        document_name: file.name,
+        num_questions: 3
+      });
+
+      const newQuiz: PendingQuiz = {
+        id: `quiz-${uploadId}`,
+        sourceMaterial: file.name,
+        competencyName: compName,
+        difficultyLevel: formData.difficulty,
+        status: 'pending',
+        questions: (qRes.questions || []).map((q, idx) => ({
+          id: `q-${uploadId}-${idx}`,
+          question_text: q.question_text,
+          options: q.options,
+          explanation: q.explanation,
+          difficulty: q.difficulty || formData.difficulty,
+          competency: q.competency || compName
+        }))
+      };
+
       onUploadComplete({
-        id: Math.random().toString(36).substr(2, 9),
-        title: formData.title || file.name,
+        id: uploadId,
+        title: fileTitle,
         fileName: file.name,
         fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB',
         competencyId: formData.competencyId,
         difficulty: formData.difficulty,
-        status: 'Processed',
+        status: `RAG Active (${uploadRes.total_chunks} chunks)`,
         uploadedAt: new Date().toISOString()
+      }, newQuiz);
+
+      setNotification({
+        type: 'success',
+        message: `Success! Processed ${uploadRes.total_chunks} chunks and generated ${newQuiz.questions.length} AI MCQs.`
       });
-      // Reset
+    } catch (err) {
+      console.warn('Backend API request failed — using offline demo fallback:', err);
+      
+      const fallbackQuiz: PendingQuiz = {
+        id: `quiz-${uploadId}`,
+        sourceMaterial: file.name,
+        competencyName: compName,
+        difficultyLevel: formData.difficulty,
+        status: 'pending',
+        questions: [
+          {
+            id: `q-${uploadId}-1`,
+            question_text: `What core principle is essential for assessing ${compName} at the ${formData.difficulty} level?`,
+            options: [
+              { text: 'Standardization and data integrity verification', is_correct: true },
+              { text: 'Unverified manual aggregation of records', is_correct: false },
+              { text: 'Ignoring non-sampling systematic errors', is_correct: false },
+              { text: 'Arbitrary estimation without metadata tracking', is_correct: false }
+            ],
+            explanation: `At level ${formData.difficulty}, rigorous verification of data integrity and standardized procedures are required.`,
+            difficulty: formData.difficulty,
+            competency: compName
+          }
+        ]
+      };
+
+      onUploadComplete({
+        id: uploadId,
+        title: fileTitle,
+        fileName: file.name,
+        fileSize: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+        competencyId: formData.competencyId,
+        difficulty: formData.difficulty,
+        status: 'Processed (Demo)',
+        uploadedAt: new Date().toISOString()
+      }, fallbackQuiz);
+
+      setNotification({
+        type: 'info',
+        message: 'Material processed. (Live Gemini RAG available when backend is connected).'
+      });
+    } finally {
+      setIsUploading(false);
       setFile(null);
       setFormData({ title: '', domainId: '', competencyId: '', difficulty: 'L1' });
-    }, 2000);
+    }
   };
 
   const filteredCompetencies = formData.domainId 
@@ -85,7 +165,26 @@ export const UploadMaterial: React.FC<Props> = ({ onUploadComplete }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="p-6 space-y-5">
-        
+        {notification && (
+          <div className={`p-3 rounded-xl text-xs flex items-center justify-between ${
+            notification.type === 'success' 
+              ? 'bg-[#EDF7EF] border border-[#CCEBD3] text-[#237A3C]' 
+              : 'bg-[#FEF8EC] border border-[#FBE3B5] text-[#B86B00]'
+          }`}>
+            <div className="flex items-center space-x-2">
+              {notification.type === 'success' ? (
+                <Sparkles className="w-4 h-4 shrink-0 text-[#237A3C]" />
+              ) : (
+                <AlertCircle className="w-4 h-4 shrink-0 text-[#B86B00]" />
+              )}
+              <span>{notification.message}</span>
+            </div>
+            <button type="button" onClick={() => setNotification(null)} className="ml-2 text-current opacity-70 hover:opacity-100">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* File Dropzone */}
         <div>
           <label className="block text-xs font-bold text-[#4A443C] uppercase tracking-wider mb-1.5">Resource Document</label>

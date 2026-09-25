@@ -1,27 +1,30 @@
 import React, { useState } from 'react';
 import { UploadMaterial } from '../../features/trainer/UploadMaterial';
 import { ReviewQuizzes } from '../../features/trainer/ReviewQuizzes';
+import { INITIAL_UPLOADS, INITIAL_QUIZZES, type PendingQuiz } from '../../features/trainer/mockData';
 import { FileText, Clock, Settings, FileCheck, Layers, UploadCloud, ListChecks } from 'lucide-react';
 import { COMPETENCIES } from '../../features/competency/mockData';
 
 export const TrainerDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'upload' | 'review'>('upload');
-  
-  const [uploads, setUploads] = useState<any[]>([
-    {
-      id: 'mock1',
-      title: 'Intro to Python for Statistics',
-      fileName: 'python_stats_v1.pdf',
-      fileSize: '4.2 MB',
-      competencyId: 'c6',
-      difficulty: 'L2',
-      status: 'Processed',
-      uploadedAt: new Date(Date.now() - 86400000).toISOString()
-    }
-  ]);
+  const [uploads, setUploads] = useState<any[]>(INITIAL_UPLOADS);
+  const [quizzes, setQuizzes] = useState<PendingQuiz[]>(INITIAL_QUIZZES);
 
-  const handleUploadComplete = (newUpload: any) => {
+  const pendingCount = quizzes.filter(q => q.status === 'pending').length;
+
+  const handleUploadComplete = (newUpload: any, generatedQuiz?: PendingQuiz) => {
     setUploads(prev => [newUpload, ...prev]);
+    if (generatedQuiz) {
+      setQuizzes(prev => [generatedQuiz, ...prev]);
+    }
+  };
+
+  const handleApproveQuiz = (quizId: string) => {
+    setQuizzes(prev => prev.map(q => q.id === quizId ? { ...q, status: 'approved' } : q));
+  };
+
+  const handleUpdateQuiz = (updatedQuiz: PendingQuiz) => {
+    setQuizzes(prev => prev.map(q => q.id === updatedQuiz.id ? updatedQuiz : q));
   };
 
   const getCompetencyName = (id: string) => {
@@ -67,7 +70,11 @@ export const TrainerDashboard: React.FC = () => {
           >
             <ListChecks className="w-3.5 h-3.5 mr-1.5" />
             Review AI Quizzes
-            <span className="ml-1.5 bg-[#D9531E] text-white py-0.2 px-1.5 rounded-full text-[10px] font-mono font-bold">1</span>
+            {pendingCount > 0 && (
+              <span className="ml-1.5 bg-[#D9531E] text-white py-0.2 px-1.5 rounded-full text-[10px] font-mono font-bold">
+                {pendingCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -76,7 +83,7 @@ export const TrainerDashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Materials Uploaded', value: uploads.length.toString(), icon: Layers, color: 'text-[#D9531E]', bg: 'bg-[#FDF2EC]', border: 'border-[#F7D2C0]' },
-          { label: 'Assessments Gen.', value: (uploads.length * 4).toString(), icon: FileCheck, color: 'text-[#237A3C]', bg: 'bg-[#EDF7EF]', border: 'border-[#CCEBD3]' },
+          { label: 'Assessments Gen.', value: quizzes.reduce((acc, q) => acc + q.questions.length, 0).toString(), icon: FileCheck, color: 'text-[#237A3C]', bg: 'bg-[#EDF7EF]', border: 'border-[#CCEBD3]' },
           { label: 'Pending Processing', value: '0', icon: Clock, color: 'text-[#B86B00]', bg: 'bg-[#FEF8EC]', border: 'border-[#FBE3B5]' },
           { label: 'Model Accuracy', value: '94%', icon: Settings, color: 'text-[#1A1816]', bg: 'bg-[#F2ECE1]', border: 'border-[#DDD6C8]' },
         ].map((stat, i) => (
@@ -156,7 +163,11 @@ export const TrainerDashboard: React.FC = () => {
         </div>
       ) : (
         <div>
-          <ReviewQuizzes />
+          <ReviewQuizzes 
+            quizzes={quizzes} 
+            onApproveQuiz={handleApproveQuiz} 
+            onUpdateQuiz={handleUpdateQuiz} 
+          />
         </div>
       )}
     </div>

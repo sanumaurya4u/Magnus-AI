@@ -1,3 +1,10 @@
+import os
+from typing import Optional
+from dotenv import load_dotenv
+
+# Load local environment variables if .env exists
+load_dotenv()
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -10,6 +17,7 @@ app = FastAPI(title='Magnus AI API')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],
+    allow_origin_regex=r'https?://.*',
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
@@ -22,7 +30,7 @@ def health_check():
 class QuestionGenerationRequest(BaseModel):
     competency_name: str
     difficulty_level: str
-    document_name: str = None
+    document_name: Optional[str] = None
     num_questions: int = 3
 
 @app.post('/api/generate-questions')

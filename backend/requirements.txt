@@ -6,3 +6,4 @@ python-multipart
 langchain
 langchain-google-genai
 supabase
+python-dotenv

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { Assessment, AssessmentAttempt } from './types';
 import { Clock, CheckCircle, ArrowRight, ArrowLeft, Flag, X } from 'lucide-react';
 
@@ -20,34 +20,7 @@ export const AssessmentRunner: React.FC<Props> = ({ assessment, onComplete, onCa
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState<string[]>([]);
 
-  // Timer logic
-  useEffect(() => {
-    if (!hasStarted) return;
-    
-    if (timeLeft <= 0) {
-      handleSubmit(); // Auto-submit when time is up
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [hasStarted, timeLeft]);
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const handleSelectOption = (optionIndex: number) => {
-    const qId = assessment.questions[currentQuestionIndex].id;
-    setAnswers(prev => ({ ...prev, [qId]: optionIndex }));
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     let score = 0;
     assessment.questions.forEach((q) => {
       if (answers[q.id] === q.correctOptionIndex) {
@@ -71,7 +44,35 @@ export const AssessmentRunner: React.FC<Props> = ({ assessment, onComplete, onCa
       status: 'evaluated',
       awardedLevel
     });
+  }, [answers, assessment, onComplete]);
+
+  // Timer logic
+  useEffect(() => {
+    if (!hasStarted) return;
+    
+    if (timeLeft <= 0) {
+      handleSubmit(); // Auto-submit when time is up
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [hasStarted, timeLeft, handleSubmit]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
   };
+
+  const handleSelectOption = (optionIndex: number) => {
+    const qId = assessment.questions[currentQuestionIndex].id;
+    setAnswers(prev => ({ ...prev, [qId]: optionIndex }));
+  };
+
 
   const handleSubmitFeedback = () => {
     if (feedbackQuestionId) {

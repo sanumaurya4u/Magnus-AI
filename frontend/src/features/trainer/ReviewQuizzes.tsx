@@ -1,77 +1,35 @@
 import React, { useState } from 'react';
 import { Edit3, CheckCircle, Save, X, BrainCircuit, AlertCircle } from 'lucide-react';
+import { INITIAL_QUIZZES, type Option, type Question, type PendingQuiz } from './mockData';
 
-interface Option {
-  text: string;
-  is_correct: boolean;
+export type { Option, Question, PendingQuiz };
+export { INITIAL_QUIZZES };
+
+interface ReviewQuizzesProps {
+  quizzes?: PendingQuiz[];
+  onApproveQuiz?: (quizId: string) => void;
+  onUpdateQuiz?: (quiz: PendingQuiz) => void;
 }
 
-interface Question {
-  id: string;
-  question_text: string;
-  options: Option[];
-  explanation: string;
-  difficulty: string;
-  competency: string;
-}
+export const ReviewQuizzes: React.FC<ReviewQuizzesProps> = ({
+  quizzes: propQuizzes,
+  onApproveQuiz: propOnApproveQuiz,
+  onUpdateQuiz: propOnUpdateQuiz,
+}) => {
+  const [internalQuizzes, setInternalQuizzes] = useState<PendingQuiz[]>(INITIAL_QUIZZES);
+  const quizzes = propQuizzes ?? internalQuizzes;
 
-interface PendingQuiz {
-  id: string;
-  sourceMaterial: string;
-  competencyName: string;
-  difficultyLevel: string;
-  status: 'pending' | 'approved';
-  questions: Question[];
-}
-
-// Mock data simulating the output of Phase 11
-const INITIAL_QUIZZES: PendingQuiz[] = [
-  {
-    id: 'q1',
-    sourceMaterial: 'Introduction_to_Sampling_v2.pdf',
-    competencyName: 'Sampling',
-    difficultyLevel: 'L3',
-    status: 'pending',
-    questions: [
-      {
-        id: '1',
-        question_text: 'In a stratified random sample, what is the primary purpose of dividing the population into strata?',
-        options: [
-          { text: 'To increase the overall margin of error intentionally.', is_correct: false },
-          { text: 'To ensure representation of specific subgroups and reduce variance.', is_correct: true },
-          { text: 'To make the sampling process entirely non-random.', is_correct: false },
-          { text: 'To eliminate the need for calculating a sample mean.', is_correct: false }
-        ],
-        explanation: 'Stratification ensures subgroups are proportionally represented, often reducing standard error compared to simple random sampling.',
-        difficulty: 'L3',
-        competency: 'Sampling'
-      },
-      {
-        id: '2',
-        question_text: 'Which scenario best justifies using cluster sampling instead of simple random sampling?',
-        options: [
-          { text: 'When the population is highly homogenous.', is_correct: false },
-          { text: 'When a comprehensive sampling frame of all individuals is readily available.', is_correct: false },
-          { text: 'When the population is geographically dispersed and travel costs are high.', is_correct: true },
-          { text: 'When you want to survey every single unit in the population.', is_correct: false }
-        ],
-        explanation: 'Cluster sampling is highly cost-effective when populations are spread over wide areas, as entire clusters (like villages) are sampled at once.',
-        difficulty: 'L3',
-        competency: 'Sampling'
-      }
-    ]
-  }
-];
-
-export const ReviewQuizzes: React.FC = () => {
-  const [quizzes, setQuizzes] = useState<PendingQuiz[]>(INITIAL_QUIZZES);
   const [selectedQuiz, setSelectedQuiz] = useState<PendingQuiz | null>(null);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
   const pendingCount = quizzes.filter(q => q.status === 'pending').length;
 
   const handleApproveQuiz = (quizId: string) => {
-    setQuizzes(prev => prev.map(q => q.id === quizId ? { ...q, status: 'approved' } : q));
+    if (propOnApproveQuiz) {
+      propOnApproveQuiz(quizId);
+    } else {
+      setInternalQuizzes(prev => prev.map(q => q.id === quizId ? { ...q, status: 'approved' } : q));
+    }
     setSelectedQuiz(null);
   };
 
@@ -86,7 +44,11 @@ export const ReviewQuizzes: React.FC = () => {
     const updatedQuiz = { ...selectedQuiz, questions: updatedQuestions };
     
     setSelectedQuiz(updatedQuiz);
-    setQuizzes(prev => prev.map(q => q.id === updatedQuiz.id ? updatedQuiz : q));
+    if (propOnUpdateQuiz) {
+      propOnUpdateQuiz(updatedQuiz);
+    } else {
+      setInternalQuizzes(prev => prev.map(q => q.id === updatedQuiz.id ? updatedQuiz : q));
+    }
     setEditingQuestion(null);
   };
 
