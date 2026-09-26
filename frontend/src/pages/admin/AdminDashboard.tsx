@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UserManagement } from '../../features/admin/UserManagement';
 import { SystemHealth } from '../../features/admin/SystemHealth';
 import { ShieldCheck, Users, Target, Activity, BarChart2, TrendingUp, AlertTriangle } from 'lucide-react';
@@ -21,8 +22,20 @@ const MOCK_COMPLETION = [
   { name: 'Jun', courses: 239, assessments: 380 },
 ];
 
-export const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'users' | 'health' | 'analytics'>('analytics');
+export const AdminDashboard: React.FC<{ defaultTab?: 'users' | 'health' | 'analytics' }> = ({ defaultTab = 'analytics' }) => {
+  const [activeTab, setActiveTab] = useState<'users' | 'health' | 'analytics'>(defaultTab);
+  const navigate = useNavigate();
+
+  // Sync state if defaultTab changes (due to route change)
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
+
+  const handleTabChange = (tab: 'users' | 'health' | 'analytics') => {
+    setActiveTab(tab);
+    if (tab === 'analytics') navigate('/admin');
+    else navigate(`/admin/${tab}`);
+  };
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
@@ -41,7 +54,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Segmented Pill Tabs */}
         <div className="inline-flex p-1 bg-[#EFE9DF] rounded-full border border-[#E5DFD4] shrink-0">
           <button 
-            onClick={() => setActiveTab('analytics')}
+            onClick={() => handleTabChange('analytics')}
             className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center ${
               activeTab === 'analytics' 
                 ? 'bg-[#1C1A18] text-[#F7F3EB] shadow-2xs' 
@@ -52,7 +65,7 @@ export const AdminDashboard: React.FC = () => {
             Workforce Analytics
           </button>
           <button 
-            onClick={() => setActiveTab('users')}
+            onClick={() => handleTabChange('users')}
             className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center ${
               activeTab === 'users' 
                 ? 'bg-[#1C1A18] text-[#F7F3EB] shadow-2xs' 
@@ -63,7 +76,7 @@ export const AdminDashboard: React.FC = () => {
             User Roles
           </button>
           <button 
-            onClick={() => setActiveTab('health')}
+            onClick={() => handleTabChange('health')}
             className={`px-4 py-2 rounded-full text-xs font-bold transition-all flex items-center ${
               activeTab === 'health' 
                 ? 'bg-[#1C1A18] text-[#F7F3EB] shadow-2xs' 

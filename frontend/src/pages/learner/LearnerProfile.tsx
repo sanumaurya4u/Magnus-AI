@@ -3,9 +3,12 @@ import { CompetencyPassport } from '../../features/profile/CompetencyPassport';
 import { ProfileForm } from '../../features/profile/ProfileForm';
 import type { LearnerProfile, CompetencyLevel } from '../../features/profile/types';
 import { useAuth } from '../../app/providers/AuthProvider';
+import { useNavigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react';
 
 export const LearnerProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   
   // Demo data state (in a real app, this would be fetched via TanStack Query from the API/Supabase)
   const [profile, setProfile] = useState<LearnerProfile>({
@@ -53,16 +56,29 @@ export const LearnerProfilePage: React.FC = () => {
             Manage your official designation, verified training records, and Competency Passport.
           </p>
         </div>
-        <button 
-          onClick={() => setIsEditing(!isEditing)}
-          className={`text-xs font-bold px-5 py-2.5 rounded-full transition-all shadow-2xs border ${
-            isEditing
-              ? 'bg-[#1C1A18] text-white border-[#1C1A18]'
-              : 'border-[#DDD6C8] bg-white hover:bg-[#F2ECE0] text-[#1A1816]'
-          }`}
-        >
-          {isEditing ? 'Cancel Editing' : 'Edit Profile Details'}
-        </button>
+        <div className="flex gap-3">
+          <button 
+            onClick={() => setIsEditing(!isEditing)}
+            className={`text-xs font-bold px-5 py-2.5 rounded-full transition-all shadow-2xs border ${
+              isEditing
+                ? 'bg-[#1C1A18] text-white border-[#1C1A18]'
+                : 'border-[#DDD6C8] bg-white hover:bg-[#F2ECE0] text-[#1A1816]'
+            }`}
+          >
+            {isEditing ? 'Cancel Editing' : 'Edit Profile Details'}
+          </button>
+          
+          <button 
+            onClick={async () => {
+              await logout();
+              navigate('/login', { replace: true });
+            }}
+            className="flex items-center px-4 py-2.5 bg-[#C93B2B] hover:bg-[#A92A1D] text-white font-bold text-xs rounded-full transition-all shadow-sm hover:-translate-y-0.5 active:translate-y-0"
+          >
+            <LogOut className="w-3.5 h-3.5 mr-2" />
+            Sign Out
+          </button>
+        </div>
       </div>
       
       {isEditing ? (

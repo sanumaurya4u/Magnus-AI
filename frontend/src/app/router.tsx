@@ -7,7 +7,11 @@ import { LearnerProfilePage } from '../pages/learner/LearnerProfile';
 import { LearnerCompetencyPage } from '../pages/learner/LearnerCompetency';
 import { AssessmentPage } from '../pages/learner/AssessmentPage';
 import { LearningPathPage } from '../pages/learner/LearningPathPage';
+import { LearnerQuizzes } from '../pages/learner/LearnerQuizzes';
 import { TrainerDashboard } from '../pages/trainer/TrainerDashboard';
+import { TrainerUploadPage } from '../pages/trainer/TrainerUploadPage';
+import { TrainerReviewPage } from '../pages/trainer/TrainerReviewPage';
+import { TrainerProfile } from '../pages/trainer/TrainerProfile';
 import { AdminDashboard } from '../pages/admin/AdminDashboard';
 import { Unauthorized } from '../pages/errors/Unauthorized';
 import { NotFound } from '../pages/errors/NotFound';
@@ -34,6 +38,7 @@ export const router = createBrowserRouter([
       { path: 'profile', element: <LearnerProfilePage /> },
       { path: 'competency', element: <LearnerCompetencyPage /> },
       { path: 'learning-path', element: <LearningPathPage /> },
+      { path: 'quizzes', element: <LearnerQuizzes /> },
       { path: 'assessment/:id', element: <AssessmentPage /> },
     ],
   },
@@ -42,6 +47,9 @@ export const router = createBrowserRouter([
     element: <MainLayout allowedRoles={['trainer', 'admin', 'superadmin']} />,
     children: [
       { index: true, element: <TrainerDashboard /> },
+      { path: 'upload', element: <TrainerUploadPage /> },
+      { path: 'review', element: <TrainerReviewPage /> },
+      { path: 'profile', element: <TrainerProfile /> },
     ],
   },
   {
@@ -49,6 +57,8 @@ export const router = createBrowserRouter([
     element: <MainLayout allowedRoles={['admin', 'superadmin']} />,
     children: [
       { index: true, element: <AdminDashboard /> },
+      { path: 'users', element: <AdminDashboard defaultTab="users" /> },
+      { path: 'health', element: <AdminDashboard defaultTab="health" /> },
     ],
   },
   {

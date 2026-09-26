@@ -1,7 +1,7 @@
 import React from 'react';
-import { Navigate, Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../app/providers/AuthProvider';
-import { LogOut, User as UserIcon, BookOpen, LayoutDashboard, Target, Book } from 'lucide-react';
+import { User as UserIcon, BookOpen, LayoutDashboard, Target, Book, Brain, UploadCloud, CheckSquare, Users, Activity, LogOut } from 'lucide-react';
 
 interface SidebarItem {
   label: string;
@@ -12,12 +12,6 @@ interface SidebarItem {
 export const MainLayout: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles }) => {
   const { user, isLoading, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login', { replace: true });
-  };
 
   if (isLoading) {
     return (
@@ -44,10 +38,15 @@ export const MainLayout: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles
       case 'superadmin':
         return [
           { label: 'Overview', path: '/admin', icon: LayoutDashboard },
+          { label: 'User Roles', path: '/admin/users', icon: Users },
+          { label: 'System Health', path: '/admin/health', icon: Activity },
         ];
       case 'trainer':
         return [
           { label: 'Overview', path: '/trainer', icon: LayoutDashboard },
+          { label: 'Upload Materials', path: '/trainer/upload', icon: UploadCloud },
+          { label: 'Review Quizzes', path: '/trainer/review', icon: CheckSquare },
+          { label: 'Profile', path: '/trainer/profile', icon: UserIcon },
         ];
       default: // learner
         return [
@@ -55,17 +54,18 @@ export const MainLayout: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles
           { label: 'Profile', path: '/learner/profile', icon: UserIcon },
           { label: 'Competency', path: '/learner/competency', icon: Target },
           { label: 'Learning Path', path: '/learner/learning-path', icon: BookOpen },
+          { label: 'Practice Quizzes', path: '/learner/quizzes', icon: Brain },
         ];
     }
   };
 
   const navItems = getSidebarItems();
-  const currentItem = navItems.find(item => location.pathname === item.path || location.pathname.startsWith(item.path + '/'));
+  const currentItem = navItems.find(item => location.pathname === item.path || (item.path !== '/learner' && item.path !== '/trainer' && item.path !== '/admin' && location.pathname.startsWith(item.path + '/')));
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F7F3EB] text-[#1A1816]">
       {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 bg-[#F3EFE6] border-r border-[#E5DFD3] flex flex-col">
+      <aside className="w-64 flex-shrink-0 bg-[#F3EFE6] border-r border-[#E5DFD3] flex flex-col shadow-[4px_0_24px_rgba(28,26,24,0.02)] z-10 relative">
         {/* Brand Header */}
         <div className="h-20 flex items-center px-6 border-b border-[#E5DFD3]">
           <div className="w-9 h-9 bg-[#D9531E] rounded-xl flex items-center justify-center text-white shadow-sm mr-3 shrink-0">
@@ -89,18 +89,20 @@ export const MainLayout: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles
             </span>
           </div>
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
+            const isActive = location.pathname === item.path || (item.path !== '/learner' && item.path !== '/trainer' && item.path !== '/admin' && location.pathname.startsWith(item.path + '/'));
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                className={`group flex items-center px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ease-out ${
                   isActive 
-                    ? 'bg-[#1C1A18] text-[#F7F3EB] shadow-sm' 
-                    : 'text-[#665F55] hover:bg-[#EAE2D5] hover:text-[#1A1816]'
+                    ? 'bg-[#1C1A18] text-[#F7F3EB] shadow-md shadow-[#1C1A18]/10' 
+                    : 'text-[#665F55] hover:bg-[#EAE4D8] hover:text-[#1A1816]'
                 }`}
               >
-                <item.icon className={`w-4 h-4 mr-3 shrink-0 ${isActive ? 'text-[#D9531E]' : 'text-[#8C8375]'}`} />
+                <item.icon className={`w-4 h-4 mr-3 shrink-0 transition-transform duration-200 ${
+                  isActive ? 'text-[#D9531E]' : 'text-[#8C8375] group-hover:text-[#D9531E] group-hover:scale-110'
+                }`} />
                 {item.label}
               </Link>
             );
@@ -108,17 +110,29 @@ export const MainLayout: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles
         </nav>
         
         {/* User Card Footer */}
-        <div className="p-4 border-t border-[#E5DFD3] bg-[#EFE9DE]/50">
-          <div className="flex items-center">
-            <div className="w-9 h-9 rounded-full bg-[#E5DFD3] border border-[#DDD5C5] text-[#3D372F] flex items-center justify-center mr-3 shrink-0 font-bold text-xs">
-              {user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+        <div className="p-4 border-t border-[#E5DFD3] bg-[#EFE9DE]/50 mt-auto">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center overflow-hidden">
+              <div className="w-9 h-9 rounded-full bg-[#E5DFD3] border border-[#DDD5C5] text-[#3D372F] flex items-center justify-center mr-3 shrink-0 font-bold text-xs">
+                {user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+              </div>
+              <div className="flex-1 truncate pr-2">
+                <p className="font-bold text-sm text-[#1A1816] truncate">{user.name}</p>
+                <div className="flex items-center mt-0.5">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#E8E1D2] text-[#554E45] uppercase tracking-wider mr-1.5">
+                    {user.role}
+                  </span>
+                  <span className="text-[10px] text-[#665F55] truncate">{user.email}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex-1 truncate">
-              <p className="font-bold text-sm text-[#1A1816] truncate">{user.name}</p>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#E8E1D2] text-[#554E45] uppercase tracking-wider">
-                {user.role}
-              </span>
-            </div>
+            <button 
+              onClick={() => logout()}
+              className="p-2 rounded-xl text-[#8C8375] hover:bg-[#E5DFD3] hover:text-[#D9531E] transition-colors shrink-0"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </aside>
@@ -136,13 +150,7 @@ export const MainLayout: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles
             </span>
           </div>
           <div className="flex items-center space-x-3">
-            <button 
-              onClick={handleLogout}
-              className="flex items-center px-3.5 py-1.5 rounded-full border border-[#DDD6C8] bg-white/70 hover:bg-[#EAE4D7] text-[#554E45] hover:text-[#1A1816] text-xs font-semibold transition-all shadow-2xs"
-            >
-              <LogOut className="w-3.5 h-3.5 mr-1.5 text-[#8C8375]" />
-              Sign Out
-            </button>
+            {/* Removed Sign Out button, now placed in profile sections */}
           </div>
         </header>
 

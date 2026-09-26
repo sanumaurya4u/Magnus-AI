@@ -62,16 +62,16 @@ export const LearnerDashboard: React.FC = () => {
         <GapAnalysis roleName="Junior Statistical Officer" />
       </div>
 
-      {/* Pending Assessments */}
+      {/* Practice Quizzes Entry */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-4 h-4 text-[#D9531E]" />
             <h2 className="text-lg font-extrabold text-[#1A1816]">
-              Pending Verification Assessments
+              Targeted Practice Quizzes
             </h2>
           </div>
-          <span className="text-xs font-bold text-[#8C8375]">1 Required</span>
+          <span className="text-xs font-bold text-[#8C8375]">Self-Evaluation</span>
         </div>
 
         <div className="bg-white border border-[#E6E0D4] rounded-2xl shadow-[0_2px_8px_rgba(28,26,24,0.03)] overflow-hidden">
@@ -83,42 +83,33 @@ export const LearnerDashboard: React.FC = () => {
               <div className="w-2.5 h-2.5 rounded-full bg-[#E5DFD4]"></div>
             </div>
             <span className="text-[10px] font-mono text-[#8C8375] uppercase tracking-wider">
-              evaluation &bull; official level check
+              simulation &bull; skill builder
             </span>
           </div>
 
-          <div className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-[#FAF8F4]/60 transition-colors">
+          <div className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-[#FAF8F4]/60 transition-colors group">
             <div className="mb-4 md:mb-0 space-y-2">
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FDF2EC] text-[#D9531E] border border-[#F7D2C0]">
-                  High Priority
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#EDF7EF] text-[#237A3C] border border-[#CCEBD3]">
+                  AI Generated
                 </span>
                 <span className="text-xs font-mono text-[#8C8375]">
-                  ID: a1-python-stats
+                  Dynamic Parameters
                 </span>
               </div>
               <h3 className="text-base font-extrabold text-[#1A1816]">
-                Python for Data Analysis — Practical Level Assessment
+                Configure a Custom Practice Quiz
               </h3>
               <p className="text-sm text-[#6B645B] max-w-xl">
-                Evaluate your practical proficiency with pandas, numpy, and descriptive statistics for MoSPI surveys.
+                Select specific competencies, toughness levels, and question counts to generate targeted mock assessments designed to help close your skill gaps.
               </p>
-              <div className="flex items-center space-x-3 pt-1">
-                <span className="inline-flex items-center text-xs font-semibold text-[#665F55] bg-[#F2ECE1] px-3 py-1 rounded-full">
-                  <Clock className="w-3.5 h-3.5 mr-1 text-[#8C8375]" />
-                  10 Minutes
-                </span>
-                <span className="inline-flex items-center text-xs font-semibold text-[#665F55] bg-[#F2ECE1] px-3 py-1 rounded-full font-mono">
-                  Competency: TECH_PYTHON
-                </span>
-              </div>
             </div>
             <Link 
-              to="/learner/assessment/a1"
-              className="flex items-center px-6 py-2.5 bg-[#D9531E] hover:bg-[#C24513] text-white font-bold text-sm rounded-full transition-all shrink-0 shadow-sm hover:-translate-y-0.5 active:translate-y-0"
+              to="/learner/quizzes"
+              className="flex items-center px-6 py-2.5 bg-[#1C1A18] hover:bg-black text-white font-bold text-sm rounded-full transition-all shrink-0 shadow-sm hover:-translate-y-0.5 active:translate-y-0 group-hover:shadow-md"
             >
-              Start Assessment
-              <ArrowRight className="w-4 h-4 ml-2" />
+              Configure Quiz
+              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </div>
